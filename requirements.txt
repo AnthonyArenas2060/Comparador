@@ -1,0 +1,6 @@
+streamlit
+facebook-sdk
+pandas
+matplotlib
+requests
+numpy  
