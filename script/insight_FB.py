@@ -150,6 +150,7 @@ if user_long_token:
                             tp.append("Pautado")
                     posteos["Comentarios"] = com        
                     posteos["Shares"] = sh
+                    posteos["Interacciones Publicas"] = react + com + sh
                     posteos["Tipo"] = tp    
                     st.subheader("📋 Post asociadas a tu cuenta")
                     #st.dataframe(posteos)
@@ -198,7 +199,7 @@ if user_long_token:
                     
                         # Nueva columna: comparación
                         df_comp["Comparación (P1 / P2)"] = (
-                            df_comp["Post 1"] / df_comp["Post 2"]
+                            df_comp["Post 1"] / df_comp["Post 2"] - 1
                         ).round(2)
                     
                         st.subheader("📊 Comparación de Métricas")
@@ -230,6 +231,7 @@ if user_long_token:
 
     except Exception as e:
         st.error(f"Ocurrió un error: {e}")
+
 
 
 
