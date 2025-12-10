@@ -166,41 +166,62 @@ if user_long_token:
                             )
 
 
-                    fans_city = graph.get_connections(id=page_id, connection_name = 'insights', metric = 'page_follows_city',
-                                   since = date_ini, until = date_fin)
-                    fans_city_df = pd.DataFrame.from_dict(fans_city['data'][0]['values'][0]['value'], orient = 'index')
-                    fans_city_df.reset_index(inplace=True)
-                    fans_city_df.rename(columns={'index': 'Ciudad', 0: 'Cantidad'}, inplace=True)
-                    chart = (
-                        alt.Chart(fans_city_df)
-                        .mark_bar()
-                        .encode(
-                            x=alt.X("Cantidad:Q", title="Cantidad"),
-                            y=alt.Y("Ciudad:N", sort='-x', title="Ciudad"),
-                            tooltip=["Ciudad", "Cantidad"]
-                        )
-                        .properties(width=800, height=600)
-                    )
+                    # ============================
+                    # 🔽 Selección de Posteos
+                    # ============================
+                    
+                    st.subheader("📌 Selecciona dos posteos para comparar")
+                    
+                    # Lista de IDs
+                    post_ids = posteos["id"].tolist()
+                    
+                    post1 = st.selectbox("Selecciona Post 1:", post_ids, key="post1")
+                    post2 = st.selectbox("Selecciona Post 2:", post_ids, key="post2")
+                    
+                    if post1 and post2 and post1 != post2:
+                    
+                        # Filtrar cada posteo
+                        p1 = posteos[posteos["id"] == post1].iloc[0]
+                        p2 = posteos[posteos["id"] == post2].iloc[0]
+                    
+                        # Extraer métricas relevantes
+                        columnas_metricas = [
+                            "Alcance", "Alcance Pagado", "Reacciones",
+                            "Comentarios", "Shares"
+                        ]
+                    
+                        df_comp = pd.DataFrame({
+                            "Métrica": columnas_metricas,
+                            "Post 1": [p1[col] for col in columnas_metricas],
+                            "Post 2": [p2[col] for col in columnas_metricas],
+                        })
+                    
+                        # Nueva columna: comparación
+                        df_comp["Comparación (P1 / P2)"] = (
+                            df_comp["Post 1"] / df_comp["Post 2"]
+                        ).round(2)
+                    
+                        st.subheader("📊 Comparación de Métricas")
+                        st.dataframe(df_comp)
+                    
+                        # Gráfica comparativa
+                        st.subheader("📈 Comparación visual")
+                    
+                        fig2, ax2 = plt.subplots(figsize=(8, 4))
+                        x = np.arange(len(columnas_metricas))
+                        width = 0.35
+                    
+                        ax2.bar(x - width/2, df_comp["Post 1"], width=width, label="Post 1")
+                        ax2.bar(x + width/2, df_comp["Post 2"], width=width, label="Post 2")
+                    
+                        ax2.set_xticks(x)
+                        ax2.set_xticklabels(columnas_metricas, rotation=45, ha="right")
+                        ax2.set_ylabel("Cantidad")
+                        ax2.set_title("Comparación de métricas entre dos posteos")
+                        ax2.legend()
+                    
+                        st.pyplot(fig2)
 
-                    n = len(posteos.index)
-                    x = np.arange(n)
-                    width = 0.25
-                    
-                    fig, ax = plt.subplots(figsize=(10, 5))
-                    
-                    ax.bar(x - width, posteos["Reacciones"], width=width, label="Reacciones")
-                    ax.bar(x,         posteos["Comentarios"], width=width, label="Comentarios")
-                    ax.bar(x + width, posteos["Shares"], width=width, label="Shares")
-                    
-                    ax.set_xticks(x)
-                    ax.set_xticklabels(posteos.index)
-                    ax.set_ylabel("Cantidad")
-                    ax.set_title("Interacciones Públicas")
-                    ax.legend()
-                    
-                    
-                    st.altair_chart(chart)
-                    st.pyplot(fig)
 
                 
                 else:
@@ -209,6 +230,7 @@ if user_long_token:
 
     except Exception as e:
         st.error(f"Ocurrió un error: {e}")
+
 
 
 
